@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import fragment from "./fragment.glsl";
+import vertex from "./vertex.glsl";
 
 export function run(video) {
   const canvas = document.querySelector('#c');
@@ -27,10 +28,30 @@ export function run(video) {
   {
     const texture = new THREE.VideoTexture(video);
     // const material = new THREE.MeshBasicMaterial( { map: texture, overdraw: 0.5 } );
-  
+
     // const videoBox = new THREE.BoxBufferGeometry();
     // videoMesh = new THREE.Mesh(videoBox, material);
     scene.background = texture;
+  }
+
+
+  let uniforms;
+  const startTime = Date.now();
+  {
+    uniforms = {
+      time: { type: "f", value: 1.0 },
+      resolution: { type: "v2", value: new THREE.Vector2() }
+    };
+
+    const material = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: vertex,
+      fragmentShader: fragment,
+      transparent: true,
+    });
+
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+    scene.add(mesh);
   }
 
   const boxWidth = 1;
@@ -156,6 +177,10 @@ export function run(video) {
       cube.rotation.x = rot;
       cube.rotation.y = rot;
     });
+
+    const elapsedMilliseconds = Date.now() - startTime;
+    const elapsedSeconds = elapsedMilliseconds / 1000.;
+    uniforms.time.value = 60. * elapsedSeconds;
 
     renderer.render(scene, camera);
 
